@@ -30,17 +30,11 @@ class DefaultModel(BaseModel):
             for d in sm.deadended
         }
 
-        traces = {}
-        for d in sm.deadended:
-            traces[d] = []
-            for a in d.history.bbl_addrs:
-                traces[d].append(d.block(a, num_inst=1))
-
-        return traces
 
     @staticmethod
     def filter(traces, env={}):
         return traces
+
 
     @staticmethod
     def analyse(traces, env={}):
@@ -51,17 +45,37 @@ class DefaultModel(BaseModel):
             if len(traces[p[0]]) != len(traces[p[1]])
         ]
 
-        print(len(paired))
 
-        for p0, p1 in paired:
+        filtered = [
+            (fst, snd)
+            for fst, snd in paired
+            if utils.is_unsat(
+                utils.stdin_bitvectors(fst)[0],
+                utils.constraints(fst, utils.stdin_variables(fst)),
+                utils.constraints(snd, utils.stdin_variables(snd)),
+            )
+        ]
 
-            p0_cs = utils.constraints(p0, utils.stdin_variables(p0))
-            p1_cs = utils.constraints(p1, utils.stdin_variables(p1))
+
+        results = [
+            (len(traces[fst]), len(traces[snd]))
+            for fst, snd in filtered
+        ]
 
 
-            bv = utils.stdin_bitvectors(p0)[0]
-            print(p0.posix.dumps(0), p1.posix.dumps(0))
-            print(utils.is_unsat(bv, p0_cs, p1_cs))
+        # TODO 2) backtrace to which part
+
+        print(results)
+
+        #  for p0, p1 in paired:
+
+            #  p0_cs = utils.constraints(p0, utils.stdin_variables(p0))
+            #  p1_cs = utils.constraints(p1, utils.stdin_variables(p1))
+
+
+            #  bv = utils.stdin_bitvectors(p0)[0]
+            #  print(p0.posix.dumps(0), p1.posix.dumps(0))
+            #  print(utils.is_unsat(bv, p0_cs, p1_cs))
 
             #  remaining = utils.stdin_variables(p0)
             #  visited = set()
