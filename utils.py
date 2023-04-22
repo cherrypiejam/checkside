@@ -69,4 +69,3 @@ def is_unsat(var, *args):
     except claripy.UnsatError:
         return True
     return False
-

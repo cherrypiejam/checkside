@@ -3,6 +3,7 @@
 #include <string.h>
 
 int main(int argc, char **argv) {
+
     char test[7] = "test";
     const char* env = getenv("TOKEN");
 
@@ -23,4 +24,5 @@ int main(int argc, char **argv) {
     } else {
         printf("WTF\n");
     }
+
 }
