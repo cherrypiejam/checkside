@@ -1,11 +1,10 @@
 import angr
 import csv
-import utils
-import timing
-from base_model import BaseModel
 
+from models.base import Base
+import utils, timing
 
-"""Default
+"""
 
 Timing Model: # core clock cycles
 
@@ -14,8 +13,7 @@ Secrecy Model: the entire stdin stream
 """
 
 
-
-class Model(BaseModel):
+class StdinCycles(Base):
 
     def __init__(self, path, inst_table_path, env={}):
         self.path = path
@@ -43,23 +41,16 @@ class Model(BaseModel):
         return traces
 
 
-    def calc_latency(self, trace):
+    def calc_cycles(self, trace):
         cycles, fails = timing.calc_trace_cycles(trace, self.inst_table)
         return sum(cycles) + len(fails)
 
     def analyse(self, traces):
-
-        cycles = self.calc_latency(traces[list(traces.keys())[0]])
-        print(cycles)
-
-
-        return None
-
         paired = [
             (p[0], p[1]) if len(traces[p[0]]) < len(traces[p[1]]) else (p[1], p[0])
             for p in utils.combinations(list(traces.keys()), 2)
-            if timing.num_instructions(traces[p[0]])
-                != timing.num_instructions(traces[p[1]])
+            if self.calc_cycles(traces[p[0]])
+                != self.calc_cycles(traces[p[1]])
         ]
 
 
@@ -86,25 +77,22 @@ class Model(BaseModel):
             #  #  print(])
 
 
-        #  filtered = [
-            #  (fst, snd)
-            #  for fst, snd in paired
-            #  if utils.is_unsat(
-                #  utils.stdin_bitvectors(fst)[0],
-                #  utils.constraints(fst, utils.stdin_variables(fst)),
-                #  utils.constraints(snd, utils.stdin_variables(snd)),
-            #  )
-        #  ]
+        filtered = [
+            (fst, snd)
+            for fst, snd in paired
+            if utils.is_unsat(
+                utils.stdin_bitvectors(fst)[0],
+                utils.constraints(fst, utils.stdin_variables(fst)),
+                utils.constraints(snd, utils.stdin_variables(snd)),
+            )
+        ]
 
 
-        #  results = [
-            #  ((fst.posix.dumps(0), timing.num_instructions(traces[fst]))
-            #  ,(snd.posix.dumps(0), timing.num_instructions(traces[snd])))
-            #  for fst, snd in filtered
-        #  ]
+        results = [
+            ((fst.posix.dumps(0), self.calc_cycles(traces[fst]))
+            ,(snd.posix.dumps(0), self.calc_cycles(traces[snd])))
+            for fst, snd in filtered
+        ]
 
-        #  # TODO 2) backtrace to which part
-
-        #  for r in results:
-            #  print(r)
-
+        for r in results:
+            print(r)

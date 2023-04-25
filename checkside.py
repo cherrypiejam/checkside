@@ -2,9 +2,9 @@ import sys
 import angr
 import claripy
 
-from base_model import BaseModel
-from default_model import DefaultModel
-from my_model_1 import Model
+from models.base import Base
+from models.stdin_insts import StdinInsts
+from models.stdin_cycles import StdinCycles
 
 
 BSIZE = 8
@@ -14,7 +14,7 @@ DEFAULT_ENV = {
 }
 
 
-def checkside(m: BaseModel):
+def checkside(m: Base):
     return m.analyse(m.filter(m.trace()))
 
 
@@ -31,6 +31,6 @@ if __name__ == '__main__':
     })
 
     #  result = checkside(DefaultModel(path, my_env))
-    result = checkside(Model(path, 'resources/intel_skylake_instruction_table_2022.csv', my_env))
+    result = checkside(StdinCycles(path, 'resources/intel_skylake_instruction_table_2022.csv', my_env))
     print(result)
 

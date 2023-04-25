@@ -1,11 +1,10 @@
 import angr
 import claripy
-import utils
-import timing
-from base_model import BaseModel
 
+from models.base import Base
+import utils, timing
 
-"""Default
+"""
 
 Timing Model: # instructions
 
@@ -13,7 +12,7 @@ Secrecy Model: the entire stdin stream
 
 """
 
-class DefaultModel(BaseModel):
+class StdinInsts(Base):
     def __init__(self, path, env={}):
         self.path = path
         self.env = env

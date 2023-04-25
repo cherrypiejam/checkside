@@ -1,6 +1,6 @@
 import abc
 
-class BaseModel(metaclass=abc.ABCMeta):
+class Base(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def trace(path, env={}):
         pass
