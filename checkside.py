@@ -4,6 +4,7 @@ import claripy
 
 from base_model import BaseModel
 from default_model import DefaultModel
+from my_model_1 import Model
 
 
 BSIZE = 8
@@ -13,15 +14,11 @@ DEFAULT_ENV = {
 }
 
 
-def checkside(model: BaseModel, path, env={}):
-    trace   = model.trace
-    filter  = model.filter
-    analyse = model.analyse
-    return analyse(filter(trace(path, env), env), env)
+def checkside(m: BaseModel):
+    return m.analyse(m.filter(m.trace()))
 
 
 if __name__ == '__main__':
-    #  path = 'examples/branches'
 
     try:
         path = sys.argv[1]
@@ -33,6 +30,7 @@ if __name__ == '__main__':
         "BRANCHES": claripy.BVS('br_val', 8 * BSIZE),
     })
 
-    result = checkside(DefaultModel(), path, my_env)
+    #  result = checkside(DefaultModel(path, my_env))
+    result = checkside(Model(path, 'resources/intel_skylake_instruction_table_2022.csv', my_env))
     print(result)
 

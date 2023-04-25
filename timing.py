@@ -5,3 +5,6 @@ def num_instructions(trace):
         b.instructions
         for b in trace
     ])
+
+
+
