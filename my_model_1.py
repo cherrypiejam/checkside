@@ -13,59 +13,6 @@ Secrecy Model: the entire stdin stream
 
 """
 
-def parse_immediate_data(s: str) -> str | None:
-    if s.startswith('0x'):
-        try:
-            int(s, 16)
-        except:
-            return None
-        return 'i'
-    elif s.isdigit():
-        return 'i'
-    return None
-
-def parse_register(s: str) -> str | None:
-    r64 = [ 'rax', 'rcx', 'rdx', 'rbx', 'rsp', 'rbp', 'rsi', 'rdi' ]
-    r32 = [ r.replace('r', 'e', 1) for r in r64 ]
-    r16 = [ r[1:] for r in r64 ]
-    r8  = [ r.replace('x', '', 1) + s for r in r16 for s in [ 'l', 'h' ][:r.count('x')+1] ]
-
-    s = s.lower()
-    #  if s == 'rsp':
-        #  return 'stack pointer'
-    if s in r64:
-        return 'r64'
-    elif s in r32:
-        return 'r32'
-    elif s in r16:
-        return 'r16'
-    elif s in r8:
-        if len(s) == 2:
-            return 'r8' + s[-1]
-        return 'r8'
-    return None
-
-
-def parse_memory_oprand(s: str) -> str | None:
-    s = s.lower()
-    if 'byte ptr' in s:
-        return 'm8'
-    elif 'word ptr' in s:
-        return 'm16'
-    elif 'dword ptr' in s:
-        return 'm32'
-    elif 'qword ptr' in s:
-        return 'm64'
-    return None
-
-def parse_oprand(s: str) -> str | None:
-    s = s.lower()
-    ret = parse_immediate_data(s)
-    if not ret:
-        ret = parse_register(s)
-    if not ret:
-        ret = parse_memory_oprand(s)
-    return ret
 
 
 class Model(BaseModel):
@@ -74,10 +21,7 @@ class Model(BaseModel):
         self.path = path
         self.env = env
         with open(inst_table_path, 'r') as f:
-            self.inst_table = csv.DictReader(f)
-            #  for r in reader:
-                #  print(dir(reader))
-                #  break
+            self.inst_table = list(csv.DictReader(f))
 
     def trace(self):
 
@@ -99,39 +43,14 @@ class Model(BaseModel):
         return traces
 
 
-    @staticmethod
-    def calc_inst_latency(inst):
-        opcode = inst[0]
-        oprands = inst[1].replace(', ', ',').split(',')
-
-
-        print(inst)
-        print(opcode)
-        print(oprands)
-
-        print([ parse_oprand(o) for o in oprands ])
-
-        print()
-
-
-    @staticmethod
-    def calc_latency(trace):
-
-        # parse trace to a list of instructions
-        insts = [
-            inst.split('\t')[1:]
-            for b in trace
-            for inst in str(b.disassembly).split('\n')
-        ]
-
-        for  i in insts:
-            Model.calc_inst_latency(i)
-
-        #  print(Model.calc_inst_latency(insts[0]))
+    def calc_latency(self, trace):
+        cycles, fails = timing.calc_trace_cycles(trace, self.inst_table)
+        return sum(cycles) + len(fails)
 
     def analyse(self, traces):
 
-        Model.calc_latency(traces[list(traces.keys())[0]])
+        cycles = self.calc_latency(traces[list(traces.keys())[0]])
+        print(cycles)
 
 
         return None

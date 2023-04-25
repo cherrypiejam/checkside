@@ -49,8 +49,8 @@ class DefaultModel(BaseModel):
         paired = [
             (p[0], p[1]) if len(traces[p[0]]) < len(traces[p[1]]) else (p[1], p[0])
             for p in utils.combinations(list(traces.keys()), 2)
-            if timing.num_instructions(traces[p[0]])
-                != timing.num_instructions(traces[p[1]])
+            if timing.calc_trace_instructions(traces[p[0]])
+                != timing.calc_trace_instructions(traces[p[1]])
         ]
 
 
@@ -88,8 +88,8 @@ class DefaultModel(BaseModel):
 
 
         results = [
-            ((fst.posix.dumps(0), timing.num_instructions(traces[fst]))
-            ,(snd.posix.dumps(0), timing.num_instructions(traces[snd])))
+            ((fst.posix.dumps(0), timing.calc_trace_instructions(traces[fst]))
+            ,(snd.posix.dumps(0), timing.calc_trace_instructions(traces[snd])))
             for fst, snd in filtered
         ]
 
