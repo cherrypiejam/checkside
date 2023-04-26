@@ -1,11 +1,16 @@
 import sys
 import angr
 import claripy
+import argparse
 
 from models.base import Base
 from models.stdin_insts import StdinInsts
 from models.stdin_cycles import StdinCycles
 
+MODEL_TYPES = {
+    0: StdinInsts,
+    1: StdinCycles,
+}
 
 BSIZE = 8
 DEFAULT_ENV = {
@@ -20,17 +25,23 @@ def checkside(m: Base):
 
 if __name__ == '__main__':
 
-    try:
-        path = sys.argv[1]
-    except:
-        path = 'examples/build/checksum'
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--path', type=str, required=True)
+    parser.add_argument('-m', '--model', type=int, default=0)
+    parser.add_argument('-t', '--table', type=str, required=False)
+
+    args = parser.parse_args()
     my_env = dict (
         DEFAULT_ENV, **{
-        "BRANCHES": claripy.BVS('br_val', 8 * BSIZE),
+        "MYENV": claripy.BVS('myenv_val', 8 * BSIZE),
     })
 
-    #  result = checkside(DefaultModel(path, my_env))
-    result = checkside(StdinCycles(path, 'resources/intel_skylake_instruction_table_2022.csv', my_env))
-    print(result)
+    model = MODEL_TYPES[args.model]
+    model_obj =\
+        model(args.path, env=my_env, inst_table_path=args.table)
+
+    results = checkside(model_obj)
+    for r in results:
+        print(r)
 

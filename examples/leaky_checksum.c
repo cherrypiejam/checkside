@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     fgets(data, sizeof(data), stdin);
 
     int sum = 0;
-    for (int i = 0; i < sizeof(data); i++) {
+    for (int i = 0; i < strlen(data); i++) {
         sum += (int) data[i];
         sum %= 256;
     }

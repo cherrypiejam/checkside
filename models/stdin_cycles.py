@@ -15,10 +15,10 @@ Secrecy Model: the entire stdin stream
 
 class StdinCycles(Base):
 
-    def __init__(self, path, inst_table_path, env={}):
+    def __init__(self, path, env={}, **kwargs):
         self.path = path
         self.env = env
-        with open(inst_table_path, 'r') as f:
+        with open(kwargs['inst_table_path'], 'r') as f:
             self.inst_table = list(csv.DictReader(f))
 
     def trace(self):
@@ -93,6 +93,8 @@ class StdinCycles(Base):
             ,(snd.posix.dumps(0), self.calc_cycles(traces[snd])))
             for fst, snd in filtered
         ]
+
+        return results
 
         for r in results:
             print(r)

@@ -13,7 +13,7 @@ Secrecy Model: the entire stdin stream
 """
 
 class StdinInsts(Base):
-    def __init__(self, path, env={}):
+    def __init__(self, path, env={}, **kwargs):
         self.path = path
         self.env = env
 
@@ -23,12 +23,6 @@ class StdinInsts(Base):
         s = p.factory.entry_state(env=self.env)
         sm = p.factory.simulation_manager(s)
         sm.run()
-
-        #  for d in sm.deadended:
-            #  for a in d.history.bbl_addrs:
-                #  b = d.block(a)
-                #  print(b.instructions)
-
 
         return {
             d : [
@@ -87,10 +81,12 @@ class StdinInsts(Base):
 
 
         results = [
-            ((fst.posix.dumps(0), timing.calc_trace_instructions(traces[fst]))
-            ,(snd.posix.dumps(0), timing.calc_trace_instructions(traces[snd])))
+            ({ 'inputs': fst.posix.dumps(0), '# instructions': timing.calc_trace_instructions(traces[fst])}
+            ,{ 'inputs': snd.posix.dumps(0), '# instructions': timing.calc_trace_instructions(traces[snd])})
             for fst, snd in filtered
         ]
+
+        return results
 
         # TODO 2) backtrace to which part
 

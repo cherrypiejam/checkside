@@ -1,3 +1,5 @@
 all:
-	x86_64-unknown-linux-gnu-gcc branch.c -o build/branch
-	x86_64-unknown-linux-gnu-gcc checksum.c -o build/checksum
+	$(foreach file, $(wildcard *.c), x86_64-unknown-linux-gnu-gcc $(file) -o build/$(basename $(file));)
+
+clean:
+	rm -r build/*
