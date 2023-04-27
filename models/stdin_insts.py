@@ -12,6 +12,11 @@ Secrecy Model: the entire stdin stream
 
 """
 
+def foo(state):
+    state.block(addr=state.inspect.instruction, num_inst=1).pp()
+
+DEBUG = False
+
 class StdinInsts(Base):
     def __init__(self, path, env={}, **kwargs):
         self.path = path
@@ -21,8 +26,17 @@ class StdinInsts(Base):
 
         p = angr.Project(self.path, auto_load_libs=False)
         s = p.factory.entry_state(env=self.env)
+
+        if DEBUG:
+            s.inspect.b('instruction', when=angr.BP_BEFORE, action=foo)
+
         sm = p.factory.simulation_manager(s)
         sm.run()
+
+        if DEBUG:
+            print(sm.deadended)
+            print(sm.active)
+            print(sm.errored[0])
 
         return {
             d : [
