@@ -1,4 +1,5 @@
 import angr
+import claripy
 import csv
 
 from models.base import Base
@@ -8,20 +9,24 @@ import utils, timing
 
 Timing Model: # core clock cycles
 
-Secrecy Model: the entire stdin stream
+Secrecy Model: environment variables
 
 """
 
-
-class StdinCycles(Base):
-
+class EnvVarCycles(Base):
     def __init__(self, path, env={}, **kwargs):
         self.path = path
         self.env = env
+        if kwargs['target_envvar'] in self.env:
+            self.target_envvar_name = kwargs['target_envvar']
+            self.target_envvar = self.env[kwargs['target_envvar']]
+        else:
+            raise Exception('target environment variable does not exist')
         with open(kwargs['inst_table_path'], 'r') as f:
             self.inst_table = list(csv.DictReader(f))
 
     def trace(self):
+        print('tracing...')
 
         p = angr.Project(self.path, auto_load_libs=False)
         s = p.factory.entry_state(env=self.env)
@@ -38,6 +43,7 @@ class StdinCycles(Base):
 
 
     def filter(self, traces):
+        print('filtering...', len(traces))
         return traces
 
     def calc_cycles(self, trace):
@@ -45,6 +51,8 @@ class StdinCycles(Base):
         return sum(cycles) + len(fails)
 
     def analyse(self, traces):
+        print('analysing...')
+
         paired = [
             (p[0], p[1]) if len(traces[p[0]]) < len(traces[p[1]]) else (p[1], p[0])
             for p in utils.combinations(list(traces.keys()), 2)
@@ -56,17 +64,20 @@ class StdinCycles(Base):
             (fst, snd)
             for fst, snd in paired
             if utils.is_unsat(
-                utils.stdin_bitvectors(fst)[0],
-                utils.constraints(fst, utils.stdin_variables(fst)),
-                utils.constraints(snd, utils.stdin_variables(snd)),
+                self.target_envvar,
+                utils.constraints(fst, list(self.target_envvar.variables)),
+                utils.constraints(snd, list(self.target_envvar.variables)),
             )
         ]
 
-
         results = [
-            ((fst.posix.dumps(0), self.calc_cycles(traces[fst]))
-            ,(snd.posix.dumps(0), self.calc_cycles(traces[snd])))
+            ({ 'envs': utils.env_dump(fst, {self.target_envvar_name: self.target_envvar}),
+               '# instructions': self.calc_cycles(traces[fst])}
+            ,{ 'envs': utils.env_dump(snd, {self.target_envvar_name: self.target_envvar}),
+               '# instructions': self.calc_cycles(traces[snd])})
             for fst, snd in filtered
         ]
 
         return results
+
+

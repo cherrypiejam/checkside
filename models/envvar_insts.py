@@ -17,11 +17,13 @@ class EnvVarInsts(Base):
         self.path = path
         self.env = env
         if kwargs['target_envvar'] in self.env:
+            self.target_envvar_name = kwargs['target_envvar']
             self.target_envvar = self.env[kwargs['target_envvar']]
         else:
             raise Exception('target environment variable does not exist')
 
     def trace(self):
+        print('tracing...')
 
         p = angr.Project(self.path, auto_load_libs=False)
         s = p.factory.entry_state(env=self.env)
@@ -38,15 +40,12 @@ class EnvVarInsts(Base):
 
 
     def filter(self, traces):
-
-        # TODO filter stdin related...
-        #  print([[self.target_envvar.variables]])
-        #  print(utils.env_dump)
-
+        print('filtering...', len(traces))
         return traces
 
 
     def analyse(self, traces):
+        print('analysing...')
 
         paired = [
             (p[0], p[1]) if len(traces[p[0]]) < len(traces[p[1]]) else (p[1], p[0])
@@ -65,14 +64,12 @@ class EnvVarInsts(Base):
             )
         ]
 
-
-        # TODO What exactly do we want
         results = [
-            ({ 'inputs': fst.posix.dumps(0), '# instructions': timing.calc_trace_instructions(traces[fst])}
-            ,{ 'inputs': snd.posix.dumps(0), '# instructions': timing.calc_trace_instructions(traces[snd])})
+            ({ 'envs': utils.env_dump(fst, {self.target_envvar_name: self.target_envvar}),
+               '# instructions': timing.calc_trace_instructions(traces[fst])}
+            ,{ 'envs': utils.env_dump(snd, {self.target_envvar_name: self.target_envvar}),
+               '# instructions': timing.calc_trace_instructions(traces[snd])})
             for fst, snd in filtered
         ]
 
         return results
-
-

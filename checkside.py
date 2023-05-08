@@ -3,21 +3,23 @@ import angr
 import claripy
 import argparse
 
-from models.base         import Base
-from models.stdin_insts  import StdinInsts
-from models.stdin_cycles import StdinCycles
-from models.envvar_insts import EnvVarInsts
+from models.base          import Base
+from models.stdin_insts   import StdinInsts
+from models.stdin_cycles  import StdinCycles
+from models.envvar_insts  import EnvVarInsts
+from models.envvar_cycles import EnvVarCycles
 
 MODEL_TYPES = {
     0: StdinInsts,
     1: StdinCycles,
     2: EnvVarInsts,
+    3: EnvVarCycles,
 }
 
 BSIZE = 8
 DEFAULT_ENV = {
-    "PATH"  : claripy.BVS('path_val', 8 * BSIZE),
-    "TOKEN" : claripy.BVS('token_val', 8 * BSIZE),
+    #  "PATH"  : claripy.BVS('path_val', 8 * BSIZE),
+    "TOKEN" : claripy.BVS('token_val', 1 * BSIZE),
 }
 
 
