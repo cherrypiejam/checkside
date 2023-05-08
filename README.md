@@ -120,7 +120,7 @@ condition that involves one or more secret variables but with
 the opposite assumption of that condition. Thus, one can learn some knowledge
 regarding the secret(s) from the comparison between two traces.
 
-![case_1](figures/case_1.png)
+![case 1](figures/case_1.png)
 
 Considering a symbolic execution given in the above figure, $P$ and $S$
 represent a public symbolic variable and a secret symbolic variable,
@@ -135,7 +135,7 @@ both corresponding traces depend on the same secret $S$. When we compare
 $(A, B)$ or $(A, C)$, only the public information $P$ can be learned, which
 is not useful.
 
-![case_2](figures/case_2.png)
+![case 2](figures/case_2.png)
 
 Considering another case shown above, $(A, B)$ and $(A, C)$ are meaningfully
 comparable pairs, while $(B, C)$ isn't for the same reason.
